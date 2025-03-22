@@ -2,6 +2,7 @@ import sys
 import instaloader
 from datetime import datetime
 import time
+import json
 
 def get_user_posts(username):
     # Crear una instancia de Instaloader con algunas configuraciones para evitar bloqueos
@@ -15,42 +16,62 @@ def get_user_posts(username):
         compress_json=False
     )
     
+    result = {
+        "status": "success",
+        "data": None,
+        "error": None
+    }
+    
     try:
-        print(f"Buscando información del usuario '{username}'...")
         # Obtener el perfil
         profile = instaloader.Profile.from_username(L.context, username)
         
-        print(f"\nInformación encontrada para @{username}:")
-        print(f"Nombre completo: {profile.full_name}")
-        print(f"Biografía: {profile.biography}")
-        print(f"Seguidores: {profile.followers}")
-        print(f"Siguiendo: {profile.followees}")
-        print(f"Número de posts: {profile.mediacount}")
-        print("\nÚltimos posts:")
+        # Preparar la información del usuario
+        user_data = {
+            "username": username,
+            "full_name": profile.full_name,
+            "biography": profile.biography,
+            "followers": profile.followers,
+            "following": profile.followees,
+            "post_count": profile.mediacount,
+            "posts": []
+        }
         
         # Obtener los posts
         count = 0
         for post in profile.get_posts():
-            print(f"\nFecha: {post.date.strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"Likes: {post.likes}")
-            print(f"Comentarios: {post.comments}")
-            print(f"Descripción: {post.caption if post.caption else 'Sin descripción'}")
-            print("-" * 50)
+            post_data = {
+                "date": post.date.strftime('%Y-%m-%d %H:%M:%S'),
+                "likes": post.likes,
+                "comments": post.comments,
+                "caption": post.caption if post.caption else "",
+                "url": post.url,
+                "location": post.location if post.location else None
+            }
+            user_data["posts"].append(post_data)
             
             count += 1
             if count >= 10:  # Limitar a 10 posts
                 break
             # Pequeña pausa para evitar límites de tasa
             time.sleep(1)
+        
+        result["data"] = user_data
                 
     except instaloader.exceptions.ProfileNotExistsException:
-        print(f"Error: El usuario '{username}' no existe")
+        result["status"] = "error"
+        result["error"] = f"El usuario '{username}' no existe"
     except instaloader.exceptions.LoginRequiredException:
-        print("Error: Se requiere iniciar sesión para ver esta información")
+        result["status"] = "error"
+        result["error"] = "Se requiere iniciar sesión para ver esta información"
     except instaloader.exceptions.ConnectionException:
-        print("Error: Problema de conexión con Instagram. Intente más tarde")
+        result["status"] = "error"
+        result["error"] = "Problema de conexión con Instagram. Intente más tarde"
     except Exception as e:
-        print(f"Error al obtener la información: {str(e)}")
+        result["status"] = "error"
+        result["error"] = str(e)
+    
+    return result
 
 def main():
     if len(sys.argv) != 2:
@@ -59,7 +80,10 @@ def main():
         sys.exit(1)
     
     username = sys.argv[1]
-    get_user_posts(username)
+    result = get_user_posts(username)
+    
+    # Imprimir el resultado en formato JSON
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 if __name__ == '__main__':
     main()
