@@ -33,8 +33,14 @@ How to use on Windows
 pip instagramInfo.py instagramUserName
 ```
 
-How to use on Linux
+How to use on Linux one username
 
 ```
  python instagramInfo.py elonmusk
+```
+
+How to use on Linux multiple username
+
+```
+ python instagramInfo.py elonmusk billgates markzuckerberg
 ```

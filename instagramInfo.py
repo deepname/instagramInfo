@@ -97,8 +97,15 @@ def main():
     usernames = sys.argv[1:]
     results = get_user_posts(usernames)
     
-    # Imprimir el resultado en formato JSON
-    print(json.dumps(results, ensure_ascii=False, indent=2))
+    # Crear nombre del archivo con fecha y hora actual
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    output_file = f'instagram_data_{timestamp}.json'
+    
+    # Guardar resultados en archivo JSON
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+    
+    print(f"\nDatos guardados en el archivo: {output_file}")
 
 if __name__ == '__main__':
     main()
