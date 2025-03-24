@@ -23,7 +23,8 @@ def get_user_data(loader, username):
             "post_count": profile.mediacount,
             "posts": []
         }
-        for post in profile.get_posts()[:10]:  # Usamos slicing para limitar los posts
+        posts = list(profile.get_posts())
+        for post in posts[:10]:  # Usamos slicing para limitar los posts
             post_data = {
                 "date": post.date.strftime('%Y-%m-%d %H:%M:%S'),
                 "likes": post.likes,
